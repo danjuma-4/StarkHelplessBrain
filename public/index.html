@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <button id="themeToggle" class="theme-toggle">
+            <span id="themeIcon">🌙</span>
+            <span id="themeText">Dark Mode</span>
+        </button>
+        <div class="login-container">
+            <h1>🚀 Join the Chat</h1>
+            <div class="login-form">
+                <input type="text" id="usernameInput" placeholder="Enter your username" maxlength="20">
+                <input type="password" id="passwordInput" placeholder="Enter your password" maxlength="50">
+                <button id="joinBtn" class="join-btn">Join Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat App -->
+    <div id="chatApp" class="chat-app hidden">
+        <button id="chatThemeToggle" class="chat-theme-toggle">
+            <span id="chatThemeIcon">🌙</span>
+        </button>
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="user-info">
+                <div class="user-details">
+                    <span id="userAvatar" class="user-avatar">👤</span>
+                    <span id="userName" class="user-name">User</span>
+                </div>
+                <button id="logoutBtn" class="logout-btn">🚪</button>
+            </div>
+            
+            <div class="groups-section">
+                <div class="section-header">
+                    <h3>Groups</h3>
+                    <button id="createGroupBtn" class="create-btn">+</button>
+                </div>
+                <div id="groupsList" class="groups-list"></div>
+            </div>
+        </div>
+
+        <!-- Main Chat -->
+        <div class="main-chat">
+            <div class="chat-header">
+                <div class="chat-header-main">
+                    <h2 id="currentGroupName">General</h2>
+                    <div class="chat-controls">
+                        <button id="searchToggle" class="control-btn">🔍</button>
+                        <button id="chatMenuToggle" class="control-btn">⋮</button>
+                    </div>
+                </div>
+                <div id="searchBar" class="search-bar hidden">
+                    <input type="text" id="searchInput" placeholder="Search messages...">
+                    <button id="searchClear" class="search-clear">✕</button>
+                </div>
+                <div id="onlineUsers" class="online-users"></div>
+                <div id="typingIndicator" class="typing-indicator hidden"></div>
+            </div>
+            
+            <div id="messagesContainer" class="messages-container"></div>
+            
+            <div class="message-input-container">
+                <input type="file" id="fileInput" accept="*/*" style="display: none;">
+                <button id="attachBtn" class="attach-btn">📎</button>
+                <button id="emojiBtn" class="emoji-btn">😊</button>
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
+                    <button id="voiceBtn" class="voice-btn hidden">🎤</button>
+                </div>
+                <button id="sendBtn" class="send-btn">Send</button>
+            </div>
+            
+            <!-- Emoji Picker -->
+            <div id="emojiPicker" class="emoji-picker hidden">
+                <div class="emoji-categories">
+                    <div class="emoji-category">
+                        <span class="emoji-item">😀</span><span class="emoji-item">😃</span><span class="emoji-item">😄</span><span class="emoji-item">😁</span>
+                        <span class="emoji-item">😆</span><span class="emoji-item">😅</span><span class="emoji-item">🤣</span><span class="emoji-item">😂</span>
+                        <span class="emoji-item">🙂</span><span class="emoji-item">🙃</span><span class="emoji-item">😉</span><span class="emoji-item">😊</span>
+                        <span class="emoji-item">😇</span><span class="emoji-item">🥰</span><span class="emoji-item">😍</span><span class="emoji-item">🤩</span>
+                        <span class="emoji-item">😘</span><span class="emoji-item">😗</span><span class="emoji-item">☺️</span><span class="emoji-item">😚</span>
+                        <span class="emoji-item">😙</span><span class="emoji-item">🥲</span><span class="emoji-item">😋</span><span class="emoji-item">😛</span>
+                        <span class="emoji-item">😜</span><span class="emoji-item">🤪</span><span class="emoji-item">😝</span><span class="emoji-item">🤑</span>
+                        <span class="emoji-item">🤗</span><span class="emoji-item">🤭</span><span class="emoji-item">🤫</span><span class="emoji-item">🤔</span>
+                        <span class="emoji-item">🤐</span><span class="emoji-item">🤨</span><span class="emoji-item">😐</span><span class="emoji-item">😑</span>
+                        <span class="emoji-item">👍</span><span class="emoji-item">👎</span><span class="emoji-item">👌</span><span class="emoji-item">🤝</span>
+                        <span class="emoji-item">🙏</span><span class="emoji-item">❤️</span><span class="emoji-item">💕</span><span class="emoji-item">💖</span>
+                        <span class="emoji-item">🔥</span><span class="emoji-item">⭐</span><span class="emoji-item">✨</span><span class="emoji-item">🎉</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div id="createGroupModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Create New Group</h3>
+            <input type="text" id="groupNameInput" placeholder="Group name" maxlength="30">
+            <div class="modal-buttons">
+                <button id="cancelGroupBtn" class="cancel-btn">Cancel</button>
+                <button id="confirmCreateGroupBtn" class="confirm-btn">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Menu Modal -->
+    <div id="chatMenuModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Chat Options</h3>
+            <div class="menu-options">
+                <button id="archiveChatBtn" class="menu-option">📁 Archive Chat</button>
+                <button id="clearChatBtn" class="menu-option">🗑️ Clear Messages</button>
+                <button id="viewPinnedBtn" class="menu-option">📌 View Pinned</button>
+                <button id="blockUserBtn" class="menu-option">🚫 Block User</button>
+            </div>
+            <div class="modal-buttons">
+                <button id="closeChatMenuBtn" class="cancel-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>User Profile</h3>
+            <div class="profile-section">
+                <div class="profile-avatar">
+                    <span id="profileAvatar">👤</span>
+                </div>
+                <input type="text" id="profileStatus" placeholder="Status message..." maxlength="100">
+                <select id="statusSelect">
+                    <option value="online">🟢 Online</option>
+                    <option value="away">🟡 Away</option>
+                    <option value="busy">🔴 Busy</option>
+                    <option value="invisible">⚫ Invisible</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button id="cancelProfileBtn" class="cancel-btn">Cancel</button>
+                <button id="saveProfileBtn" class="confirm-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Context Menu -->
+    <div id="messageContextMenu" class="context-menu hidden">
+        <button class="context-option" data-action="edit">✏️ Edit</button>
+        <button class="context-option" data-action="delete">🗑️ Delete</button>
+        <button class="context-option" data-action="pin">📌 Pin</button>
+        <button class="context-option" data-action="reply">↩️ Reply</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
